@@ -15,7 +15,12 @@
       padding: 2rem;
     }
     h1 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    #timestamp {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 1.5rem;
     }
     table {
       border-collapse: collapse;
@@ -48,14 +53,15 @@
 </head>
 <body>
   <h1>Singapore PSI Readings</h1>
+  <div id="timestamp">Loading latest data...</div>
+  
   <table id="psiTable">
     <thead>
       <tr id="header-row">
         <th>Reading Type</th>
       </tr>
     </thead>
-    <tbody id="table-body">
-    </tbody>
+    <tbody id="table-body"></tbody>
     <caption>Data source: <a href="https://api.data.gov.sg/v1/environment/psi" target="_blank">data.gov.sg PSI API</a></caption>
   </table>
 
@@ -65,8 +71,18 @@
         const response = await fetch("https://api.data.gov.sg/v1/environment/psi");
         const data = await response.json();
 
-        const readings = data.items[0].readings;
-        const regions = Object.keys(readings["psi_twenty_four_hourly"]); // e.g. north, south, etc.
+        const item = data.items[0];
+        const readings = item.readings;
+        const regions = Object.keys(readings["psi_twenty_four_hourly"]); // e.g., north, south, etc.
+        
+        // Update timestamp
+        const updateTime = new Date(item.update_timestamp);
+        document.getElementById("timestamp").textContent =
+          `Last updated: ${updateTime.toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`;
+
+        // Clear previous table if refreshing
+        document.getElementById("header-row").innerHTML = "<th>Reading Type</th>";
+        document.getElementById("table-body").innerHTML = "";
 
         // Build header
         const headerRow = document.getElementById("header-row");
@@ -96,6 +112,7 @@
 
       } catch (error) {
         console.error("Error fetching PSI data:", error);
+        document.getElementById("timestamp").textContent = "Failed to load data.";
       }
     }
 
