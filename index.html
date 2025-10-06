@@ -74,18 +74,23 @@
         const item = data.items[0];
         const readings = item.readings;
         const regions = Object.keys(readings["psi_twenty_four_hourly"]); // e.g., north, south, etc.
-        
-        // Update timestamp
-        const updateTime = new Date(item.update_timestamp);
-        document.getElementById("timestamp").textContent =
-          `Last updated: ${updateTime.toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`;
 
-        // Clear previous table if refreshing
-        document.getElementById("header-row").innerHTML = "<th>Reading Type</th>";
-        document.getElementById("table-body").innerHTML = "";
+        // Use both timestamps (fallback if one missing)
+        const updateTime = item.update_timestamp || item.timestamp;
+        const formattedTime = new Date(updateTime).toLocaleString("en-SG", {
+          timeZone: "Asia/Singapore",
+          dateStyle: "medium",
+          timeStyle: "short"
+        });
+        document.getElementById("timestamp").textContent = `Last updated: ${formattedTime}`;
+
+        // Clear previous table content
+        const headerRow = document.getElementById("header-row");
+        const tableBody = document.getElementById("table-body");
+        headerRow.innerHTML = "<th>Reading Type</th>";
+        tableBody.innerHTML = "";
 
         // Build header
-        const headerRow = document.getElementById("header-row");
         regions.forEach(region => {
           const th = document.createElement("th");
           th.textContent = region.charAt(0).toUpperCase() + region.slice(1);
@@ -93,7 +98,6 @@
         });
 
         // Build rows
-        const tableBody = document.getElementById("table-body");
         Object.entries(readings).forEach(([readingType, regionValues]) => {
           const row = document.createElement("tr");
 
@@ -112,7 +116,7 @@
 
       } catch (error) {
         console.error("Error fetching PSI data:", error);
-        document.getElementById("timestamp").textContent = "Failed to load data.";
+        document.getElementById("timestamp").textContent = "⚠️ Failed to load data.";
       }
     }
 
