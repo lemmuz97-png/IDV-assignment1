@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singapore PSI Readings</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f6f8fa;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem 1rem;
+      text-align: center;
+    }
+    th {
+      background-color: #007aff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    caption {
+      caption-side: bottom;
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Singapore PSI Readings</h1>
+  <table id="psiTable">
+    <thead>
+      <tr id="header-row">
+        <th>Reading Type</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+    <caption>Data source: <a href="https://api.data.gov.sg/v1/environment/psi" target="_blank">data.gov.sg PSI API</a></caption>
+  </table>
+
+  <script>
+    async function fetchPSIData() {
+      try {
+        const response = await fetch("https://api.data.gov.sg/v1/environment/psi");
+        const data = await response.json();
+
+        const readings = data.items[0].readings;
+        const regions = Object.keys(readings["psi_twenty_four_hourly"]); // e.g. north, south, etc.
+
+        // Build header
+        const headerRow = document.getElementById("header-row");
+        regions.forEach(region => {
+          const th = document.createElement("th");
+          th.textContent = region.charAt(0).toUpperCase() + region.slice(1);
+          headerRow.appendChild(th);
+        });
+
+        // Build rows
+        const tableBody = document.getElementById("table-body");
+        Object.entries(readings).forEach(([readingType, regionValues]) => {
+          const row = document.createElement("tr");
+
+          const typeCell = document.createElement("td");
+          typeCell.textContent = readingType;
+          row.appendChild(typeCell);
+
+          regions.forEach(region => {
+            const cell = document.createElement("td");
+            cell.textContent = regionValues[region];
+            row.appendChild(cell);
+          });
+
+          tableBody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error("Error fetching PSI data:", error);
+      }
+    }
+
+    fetchPSIData();
+  </script>
+</body>
+</html>
